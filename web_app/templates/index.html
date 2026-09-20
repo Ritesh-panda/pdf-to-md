@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MinerU — Intelligent Document Parser</title>
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX Math CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  
+  <!-- App Styles -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <!-- Ambient background lighting -->
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-bottom"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="logo-badge">⚡</div>
+        <div>
+          <h1 class="brand-title">MinerU Studio</h1>
+          <p class="brand-subtitle">High-precision Document to Markdown & LaTeX Engine</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-chip">
+          <div class="status-dot"></div>
+          <span id="hardwareBadge">LOCAL BACKEND</span>
+        </div>
+        <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light/Dark Theme">☀️</button>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="main-grid">
+      <!-- Left Sidebar: Controls & Upload -->
+      <section class="controls-column">
+        <div class="glass-card">
+          <h2 class="card-title">📤 Upload Document</h2>
+          
+          <form id="parseForm">
+            <!-- Drop Zone -->
+            <div id="dropZone" class="drop-zone">
+              <span class="drop-zone-icon">📄</span>
+              <div class="drop-zone-title">Click or drag document here</div>
+              <div class="drop-zone-desc">Supports PDF, DOCX, PPTX, XLSX, EPUB, HTML, Images</div>
+              <input type="file" id="fileInput" style="display: none;" accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.epub,.html,.htm,.txt,.csv,.tsv,.png,.jpg,.jpeg,.webp">
+            </div>
+
+            <!-- Selected File Info -->
+            <div id="fileInfoBar" class="file-info-bar">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span>📎</span>
+                <span id="fileNameDisplay" class="file-info-name">document.pdf</span>
+              </div>
+              <button type="button" id="fileRemoveBtn" class="file-remove-btn" title="Remove file">✕</button>
+            </div>
+
+            <!-- Tier Selector -->
+            <div class="control-group">
+              <label class="control-label">Extraction Tier</label>
+              <div class="tier-options-grid">
+                <div class="tier-card" data-tier="flash">
+                  <div class="tier-name">⚡ Flash</div>
+                  <div class="tier-desc">Ultra-fast native extraction for digital documents</div>
+                </div>
+                <div class="tier-card active" data-tier="standard">
+                  <div class="tier-name">⭐ Standard</div>
+                  <div class="tier-desc">Full AI Layout, OCR, LaTeX Math & Tables</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Page Range Filter -->
+            <div class="control-group">
+              <label for="pageRangeInput" class="control-label">Page Range (Optional)</label>
+              <div class="input-wrapper">
+                <input type="text" id="pageRangeInput" class="custom-input" placeholder="e.g. 1-10, all, r3-r1">
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <button type="submit" id="parseBtn" class="btn-primary" disabled>
+              <span>🚀</span>
+              <span id="parseBtnText">Start Extraction</span>
+            </button>
+          </form>
+
+          <!-- Progress Bar & Status -->
+          <div id="progressContainer" class="progress-container">
+            <div class="progress-header">
+              <span id="progressStatus">Initializing...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Results & Previews -->
+      <section class="results-column">
+        <div id="resultsCard" class="glass-card results-card">
+          <div class="results-header">
+            <!-- Tabs -->
+            <div class="tabs-nav">
+              <button class="tab-btn active" data-target="renderedPane">Preview</button>
+              <button class="tab-btn" data-target="rawMarkdownPane">Markdown</button>
+              <button class="tab-btn" data-target="jsonPane">JSON Schema</button>
+              <button class="tab-btn" id="mediaTabBtn" data-target="mediaPane">Media & Math</button>
+            </div>
+
+            <!-- Action Toolbar -->
+            <div class="action-buttons-group">
+              <button id="copyMdBtn" class="btn-secondary" title="Copy Markdown to Clipboard" disabled>
+                📋 Copy MD
+              </button>
+              <button id="downloadMdBtn" class="btn-secondary" title="Download .md file" disabled>
+                ⬇️ Download .md
+              </button>
+              <button id="downloadZipBtn" class="btn-secondary btn-zip" title="Download Full ZIP Bundle" disabled>
+                📦 Download .zip
+              </button>
+            </div>
+          </div>
+
+          <!-- Placeholder Empty State -->
+          <div id="placeholderState" class="placeholder-state">
+            <div class="placeholder-icon">📑</div>
+            <div class="placeholder-text">Upload a document on the left to start extracting structured content</div>
+          </div>
+
+          <!-- Active Tabs Container -->
+          <div id="tabContentContainer" style="display: none; height: 100%;">
+            <!-- 1. Rendered Markdown Tab -->
+            <div id="renderedPane" class="tab-pane active markdown-body"></div>
+
+            <!-- 2. Raw Markdown Tab -->
+            <div id="rawMarkdownPane" class="tab-pane raw-code-view" style="white-space: pre-wrap;"></div>
+
+            <!-- 3. JSON Schema Tab -->
+            <div id="jsonPane" class="tab-pane raw-code-view"></div>
+
+            <!-- 4. Extracted Media Tab -->
+            <div id="mediaPane" class="tab-pane">
+              <div id="mediaGrid" class="media-grid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.1/marked.min.js"></script>
+  <!-- KaTeX for math formulas -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  
+  <!-- App JS Controller -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
