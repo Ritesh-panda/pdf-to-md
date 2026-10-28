@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MinerU — Intelligent Document Parser</title>
+  <title>MinerU — Intelligent Document & Batch Automation Studio</title>
   
   <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,9 +28,20 @@
         <div class="logo-badge">⚡</div>
         <div>
           <h1 class="brand-title">MinerU Studio</h1>
-          <p class="brand-subtitle">High-precision Document to Markdown & LaTeX Engine</p>
+          <p class="brand-subtitle">High-precision Document to Markdown, LaTeX & Batch Automation Engine</p>
         </div>
       </div>
+      
+      <!-- Center Mode Switcher Tabs -->
+      <div class="mode-switcher-nav">
+        <button id="modeSingleBtn" class="mode-tab-btn active">
+          <span>📄 Single Document</span>
+        </button>
+        <button id="modeBatchBtn" class="mode-tab-btn">
+          <span>📁 Batch Folder Automation</span>
+        </button>
+      </div>
+
       <div class="header-actions">
         <div class="status-chip">
           <div class="status-dot"></div>
@@ -40,8 +51,10 @@
       </div>
     </header>
 
-    <!-- Main Grid -->
-    <main class="main-grid">
+    <!-- ========================================== -->
+    <!-- VIEW 1: SINGLE DOCUMENT MODE               -->
+    <!-- ========================================== -->
+    <main id="singleDocumentView" class="main-grid">
       <!-- Left Sidebar: Controls & Upload -->
       <section class="controls-column">
         <div class="glass-card">
@@ -158,6 +171,173 @@
           </div>
         </div>
       </section>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: BATCH FOLDER AUTOMATION MODE       -->
+    <!-- ========================================== -->
+    <main id="batchFolderView" class="batch-layout" style="display: none;">
+      <!-- Batch Controls Top Card -->
+      <section class="glass-card batch-controls-card">
+        <div class="batch-card-header">
+          <div>
+            <h2 class="card-title">📁 Batch Folder Automation</h2>
+            <p class="batch-subtitle">Convert all PDFs in a folder to Markdown, LaTeX Math, JSON schemas, and Media with one click.</p>
+          </div>
+          <div class="batch-badge">⚡ FULL AUTOMATION</div>
+        </div>
+
+        <div class="batch-paths-grid">
+          <!-- Input Directory -->
+          <div class="control-group">
+            <label class="control-label" for="batchInputDir">
+              <span>📂 Source PDF Folder Path (Input Address)</span>
+            </label>
+            <div class="input-action-group">
+              <input type="text" id="batchInputDir" class="custom-input" placeholder="e.g. C:\Users\...\Desktop\pdfs" />
+              <button type="button" id="batchScanBtn" class="btn-secondary" title="Scan directory for documents">
+                🔍 Scan Folder
+              </button>
+            </div>
+          </div>
+
+          <!-- Output Directory -->
+          <div class="control-group">
+            <label class="control-label" for="batchOutputDir">
+              <span>💾 Destination Folder Path (Output Address for MD & Media)</span>
+            </label>
+            <div class="input-action-group">
+              <input type="text" id="batchOutputDir" class="custom-input" placeholder="e.g. C:\Users\...\Desktop\converted_md" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch Settings Row -->
+        <div class="batch-settings-row">
+          <div class="batch-tier-selector">
+            <span class="settings-label">Extraction Tier:</span>
+            <div class="tier-options-inline">
+              <button type="button" class="tier-pill" data-batch-tier="flash">⚡ Flash (Fastest)</button>
+              <button type="button" class="tier-pill active" data-batch-tier="standard">⭐ Standard (AI OCR + Math)</button>
+            </div>
+          </div>
+
+          <div class="batch-checkboxes">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="batchCreateZipCheck" checked />
+              <span class="checkmark"></span>
+              <span>Create per-document ZIP bundles</span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="batchMasterZipCheck" checked />
+              <span class="checkmark"></span>
+              <span>Create Master ZIP (all docs + math + json + media)</span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="batchSkipExistingCheck" />
+              <span class="checkmark"></span>
+              <span>Skip already converted files</span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="batchRecursiveCheck" />
+              <span class="checkmark"></span>
+              <span>Recursive subfolder scan</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Primary Action Buttons -->
+        <div class="batch-actions-row">
+          <button type="button" id="batchStartBtn" class="btn-primary btn-large" disabled>
+            <span>🚀</span>
+            <span id="batchStartBtnText">Start Batch Conversion</span>
+          </button>
+          <button type="button" id="batchCancelBtn" class="btn-danger" style="display: none;">
+            <span>🛑</span> Cancel Batch
+          </button>
+          <button type="button" id="batchMasterZipBtn" class="btn-secondary btn-zip btn-large" style="display: none;">
+            <span>📦</span> Download Master ZIP Bundle
+          </button>
+        </div>
+      </section>
+
+      <!-- Batch Live Progress & Summary Card -->
+      <section id="batchProgressCard" class="glass-card batch-progress-card" style="display: none;">
+        <div class="batch-progress-header">
+          <div class="progress-stats-group">
+            <div class="stat-box">
+              <div class="stat-value" id="statTotalDocs">0</div>
+              <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-box stat-success">
+              <div class="stat-value" id="statSuccessDocs">0</div>
+              <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-box stat-skipped">
+              <div class="stat-value" id="statSkippedDocs">0</div>
+              <div class="stat-label">Skipped</div>
+            </div>
+            <div class="stat-box stat-failed">
+              <div class="stat-value" id="statFailedDocs">0</div>
+              <div class="stat-label">Failed</div>
+            </div>
+          </div>
+
+          <div class="batch-status-indicator">
+            <span id="batchCurrentTaskText">Ready</span>
+            <span id="batchMasterPercent" class="percent-badge">0%</span>
+          </div>
+        </div>
+
+        <div class="progress-bar-bg">
+          <div id="batchMasterProgressBar" class="progress-bar-fill"></div>
+        </div>
+      </section>
+
+      <!-- Batch Documents Grid / Table & Logs -->
+      <div class="batch-details-split">
+        <!-- Table Column -->
+        <section class="glass-card batch-table-card">
+          <div class="table-header-row">
+            <h3 class="section-title">📑 Scanned Documents Queue</h3>
+            <span id="scannedCountBadge" class="count-badge">0 Files Found</span>
+          </div>
+
+          <div class="table-container">
+            <table class="batch-table" id="batchDocumentsTable">
+              <thead>
+                <tr>
+                  <th style="width: 45px;">#</th>
+                  <th>Document Name</th>
+                  <th style="width: 90px;">Size</th>
+                  <th style="width: 130px;">Status</th>
+                  <th style="width: 80px;">Pages</th>
+                  <th style="width: 90px;">Time</th>
+                  <th style="width: 140px; text-align: right;">Artifacts</th>
+                </tr>
+              </thead>
+              <tbody id="batchTableBody">
+                <tr class="empty-table-row">
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                    Enter a folder path above and click <strong>"Scan Folder"</strong> to preview documents.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Live Terminal Log -->
+        <section class="glass-card batch-log-card">
+          <div class="table-header-row">
+            <h3 class="section-title">📟 Live Execution Logs</h3>
+            <button type="button" id="clearLogsBtn" class="btn-micro">Clear</button>
+          </div>
+          <div id="batchTerminalLogs" class="batch-terminal">
+            <div class="terminal-line muted">Ready for batch operations.</div>
+          </div>
+        </section>
+      </div>
     </main>
   </div>
 
